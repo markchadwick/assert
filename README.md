@@ -43,7 +43,7 @@ func Three() *IsThree {
 }
 
 func (it *IsThree) Check(actual interface{}) assert.AssertError {
-  if actual == 3 {
+  if actual != 3 {
     return assert.EqualityErr(3, actual)
   }
   return nil
@@ -60,4 +60,15 @@ func TestIsThree(t *testing.T) {
 func TestIsNotThree(t *testing.T) {
   assert.That(t, "two").Is(Three())
 }
+```
+
+```
+--- FAIL: TestIsNotThree-2 (0.00 seconds)
+        assertion.go:48:
+                /doc/doc_test.go:38
+                  assert.That(t, "two").Is(Three())
+
+                Expected: 3
+                Actual:   two
+FAIL
 ```

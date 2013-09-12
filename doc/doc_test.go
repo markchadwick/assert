@@ -24,7 +24,7 @@ func Three() *IsThree {
 }
 
 func (it *IsThree) Check(actual interface{}) assert.AssertError {
-	if actual == 3 {
+	if actual != 3 {
 		return assert.EqualityErr(3, actual)
 	}
 	return nil
