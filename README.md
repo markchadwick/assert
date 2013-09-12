@@ -8,11 +8,11 @@ package mine
 
 import (
   "github.com/markchadwick/assert"
-	"testing"
+  "testing"
 )
 
 func TestSimpleStuff(t *testing.T) {
-	assert.That(t, 3).Equals(3)
+  assert.That(t, 3).Equals(3)
 
   assert.That(t, "Hi, Billy!").
     Contains("Billy").
@@ -21,6 +21,15 @@ func TestSimpleStuff(t *testing.T) {
 ```
 
 ## Built-in Checks
+Currently a bit in flux, but a quick overview,
+
+* Is(a Assertion)
+* IsNil()
+* Equals(v interface{})
+* IsTrue()
+* IsFalse()
+* HasLen(length int)
+* Contains(v interface{}) // Only works for a few types
 
 ## Using Custom checks
 A custom check just needs a `Check(actual interface{}) error` method. Below is
