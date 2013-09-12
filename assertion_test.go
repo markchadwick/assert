@@ -205,15 +205,15 @@ func TestIsFalse(t *testing.T) {
 // ----------------------------------------------------------------------------
 
 func TestSimpleLengthed(t *testing.T) {
-	if err := (&Lengthed{0}).Check([]string{}); err != nil {
+	if err := (&HasLen{0}).Check([]string{}); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := (&Lengthed{1}).Check([]string{}); err == nil {
+	if err := (&HasLen{1}).Check([]string{}); err == nil {
 		t.Fatal()
 	}
 
-	err := (&Lengthed{0}).Check([]string{"one", "two", "three"}).Error()
+	err := (&HasLen{0}).Check([]string{"one", "two", "three"}).Error()
 
 	if strings.Index(err, "[one two three]") < 0 {
 		t.Fatalf("Expected to have what was received...that's deep")
@@ -221,7 +221,7 @@ func TestSimpleLengthed(t *testing.T) {
 }
 
 func TestNoLength(t *testing.T) {
-	err := (&Lengthed{0}).Check(666)
+	err := (&HasLen{0}).Check(666)
 	if err == nil {
 		t.Fatal("Should have failed")
 	}
@@ -238,28 +238,45 @@ func TestContains(t *testing.T) {
 	That(t, "johnny").Contains("john")
 }
 
+func TestContainsBadType(t *testing.T) {
+	err := (&Contains{3}).Check("Hi")
+	if err == nil {
+		t.Fail()
+	}
+	That(t, err.Error()).Equals("Type int(3) can't contain values")
+
+	err = (&Contains{"Hi"}).Check(3)
+	if err == nil {
+		t.Fail()
+	}
+	That(t, err.Error()).Equals("Type int(3) not a string")
+}
+
 func TestContainsMap(t *testing.T) {
-	t.Logf("pending")
+	t.Skip()
+	if err := (&Contains{"one"}).Check(map[string]int{"one": 1}); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestContainsArray(t *testing.T) {
-	t.Logf("pending")
+	t.Skip()
 }
 
 func TestContainsSlice(t *testing.T) {
-	t.Logf("pending")
+	t.Skip()
 }
 
 func TestContainsChan(t *testing.T) {
-	t.Logf("pending")
+	t.Skip()
 }
 
 func TestContainsString(t *testing.T) {
-	if err := (&Containing{"Hello, Steve"}).Check("Steve"); err != nil {
+	if err := (&Contains{"Steve"}).Check("Hello, Steve"); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := (&Containing{"Hello, Steve"}).Check("Jimmy"); err == nil {
+	if err := (&Contains{"Steve"}).Check("Hello, Jimmy"); err == nil {
 		t.Fatal("String didn't contain 'Jimmy'")
 	}
 }

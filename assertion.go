@@ -1,8 +1,12 @@
 package assert
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 	"reflect"
+	"runtime"
+	"strings"
 	"testing"
 )
 
@@ -12,6 +16,7 @@ type test struct {
 }
 
 type Assertion interface {
+	// TODO: Can probably just be error
 	Check(v interface{}) AssertError
 }
 
@@ -22,10 +27,25 @@ func That(t *testing.T, value interface{}) *test {
 	}
 }
 
-// TODO: Recover?
 func (t *test) Is(a Assertion) *test {
+	return t.is(a)
+}
+
+// Interal `is` association for built-in checkers. This is because the call
+// stack has a differnet depth, and it would look like errors came from inside
+// this file.
+// TODO: Recover?
+func (t *test) is(a Assertion) *test {
 	if err := a.Check(t.value); err != nil {
-		t.t.Fatal(err)
+		msg := err.Error()
+		if _, file, line, ok := runtime.Caller(2); ok {
+			header := fmt.Sprintf("\n%s:%d\n", file, line)
+			if loc, err := readLine(file, line); err == nil {
+				header += fmt.Sprintf("  %s\n", strings.TrimSpace(loc))
+			}
+			msg = header + msg
+		}
+		t.t.Fatal(msg)
 	}
 	return t
 }
@@ -35,7 +55,7 @@ func (t *test) Is(a Assertion) *test {
 // ----------------------------------------------------------------------------
 
 func (t *test) IsNil() *test {
-	return t.Is(Nil())
+	return t.is(Nil())
 }
 
 type IsNil int
@@ -64,7 +84,7 @@ func (n *IsNil) Check(actual interface{}) AssertError {
 // ----------------------------------------------------------------------------
 
 func (t *test) Equals(v interface{}) *test {
-	return t.Is(&IsEqual{v})
+	return t.is(&IsEqual{v})
 }
 
 type IsEqual struct {
@@ -94,15 +114,15 @@ func (t *test) IsFalse() *test {
 // HasLen Assertion
 // ----------------------------------------------------------------------------
 
-func (t *test) Haslen(length int) *test {
-	return t.Is(&Lengthed{length})
+func (t *test) HasLen(length int) *test {
+	return t.is(&HasLen{length})
 }
 
-type Lengthed struct {
+type HasLen struct {
 	length int
 }
 
-func (l *Lengthed) Check(val interface{}) AssertError {
+func (l *HasLen) Check(val interface{}) AssertError {
 	switch v := reflect.ValueOf(val); v.Kind() {
 	default:
 		return RuntimeErr(fmt.Sprintf("Type %v has no length", v))
@@ -120,17 +140,51 @@ func (l *Lengthed) Check(val interface{}) AssertError {
 // ----------------------------------------------------------------------------
 
 func (t *test) Contains(i interface{}) *test {
-	return t.Is(&Containing{i})
+	return t.is(&Contains{i})
 }
 
-type Containing struct {
-	v interface{}
+type Contains struct {
+	needle interface{}
 }
 
-func (c *Containing) Check(val interface{}) AssertError {
-	return nil
+func (c *Contains) Check(hay interface{}) AssertError {
+	switch n := c.needle.(type) {
+	case string:
+		return c.checkString(n, hay)
+	}
+	return fmt.Errorf("Type %T(%v) can't contain values", c.needle, c.needle)
 }
 
-func (c *Containing) containsString(exp, act string) bool {
-	return false
+func (c *Contains) checkString(needle string, hay interface{}) error {
+	switch h := hay.(type) {
+	case string:
+		if strings.Index(h, needle) < 0 {
+			// TODO Improve error message
+			return fmt.Errorf("String '%s' didn't contain '%s'", hay, needle)
+		} else {
+			return nil
+		}
+	}
+	return fmt.Errorf("Type %T(%v) not a string", hay, hay)
+}
+
+// ----------------------------------------------------------------------------
+// Helpers
+// ----------------------------------------------------------------------------
+
+func readLine(fname string, lineNo int) (string, error) {
+	file, err := os.Open(fname)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	i := 1
+	for ; scanner.Scan(); i++ {
+		if i == lineNo {
+			return scanner.Text(), nil
+		}
+	}
+	return "", scanner.Err()
 }
