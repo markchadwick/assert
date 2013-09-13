@@ -25,6 +25,7 @@ Currently a bit in flux, but a quick overview,
 
 * Is(a Assertion)
 * IsNil()
+* NotNil()
 * Equals(v interface{})
 * IsTrue()
 * IsFalse()

@@ -80,6 +80,27 @@ func (n *IsNil) Check(actual interface{}) AssertError {
 }
 
 // ----------------------------------------------------------------------------
+// Not Nil Assertion
+// ----------------------------------------------------------------------------
+
+func (t *test) NotNil() *test {
+	return t.is(NotNil())
+}
+
+type IsNotNil int
+
+func NotNil() *IsNotNil {
+	return new(IsNotNil)
+}
+
+func (n *IsNotNil) Check(actual interface{}) AssertError {
+  if actual != nil {
+    return nil
+  }
+  return EqualityErr("not(nil)", actual)
+}
+
+// ----------------------------------------------------------------------------
 // Equals Assertion
 // ----------------------------------------------------------------------------
 
