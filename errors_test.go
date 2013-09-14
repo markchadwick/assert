@@ -4,14 +4,40 @@ import (
 	"testing"
 )
 
-func TestRuntimeError(t *testing.T) {
-	err := RuntimeErr("crrrap!")
+func TestErrorPreamble(t *testing.T) {
+	msg := preamble("expected", 3)
+	exp := "expected int: "
 
-	if err.Expected() != nil {
-		t.Fatal("Expectedshould have been nil")
+	if msg != exp {
+		t.Fatalf("Expected: '%s', got '%s'", exp, msg)
 	}
+}
 
-	if err.Actual() != nil {
-		t.Fatal("Actual should have been nil")
+func TestErrorPreambleNil(t *testing.T) {
+	msg := preamble("expected", nil)
+	exp := "expected: "
+
+	if msg != exp {
+		t.Fatalf("Expected: '%s', got '%s'", exp, msg)
+	}
+}
+
+func TestErrNotEqual(t *testing.T) {
+	msg := errNotEqual("three", 3).Error()
+	exp := "expected string: three\n" +
+		"received int:    3"
+
+	if msg != exp {
+		t.Fatalf("Expected: '%s', got '%s'", exp, msg)
+	}
+}
+
+func TestErrEqual(t *testing.T) {
+	msg := errEqual("three", 3).Error()
+	exp := "expected not string: three\n" +
+		"received int:        3"
+
+	if msg != exp {
+		t.Fatalf("Expected: '%s', got '%s'", exp, msg)
 	}
 }
