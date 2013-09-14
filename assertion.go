@@ -124,11 +124,11 @@ func (e *IsEqual) Check(actual interface{}) AssertError {
 // ----------------------------------------------------------------------------
 
 func (t *test) IsTrue() *test {
-	return t.Equals(true)
+	return t.is(&IsEqual{true})
 }
 
 func (t *test) IsFalse() *test {
-	return t.Equals(false)
+	return t.is(&IsEqual{false})
 }
 
 // ----------------------------------------------------------------------------
