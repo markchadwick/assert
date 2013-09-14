@@ -72,6 +72,25 @@ func (a *Assertion) Equals(v interface{}) *Assertion {
 }
 
 // ----------------------------------------------------------------------------
+// Not-Equals check
+// ----------------------------------------------------------------------------
+
+type NotEquals struct {
+	value interface{}
+}
+
+func (e *NotEquals) Check(actual interface{}) error {
+	if e.value == actual {
+		return errEqual(e.value, actual)
+	}
+	return nil
+}
+
+func (a *Assertion) NotEquals(v interface{}) *Assertion {
+	return a.Is(&NotEquals{v})
+}
+
+// ----------------------------------------------------------------------------
 // Boolean checks
 // ----------------------------------------------------------------------------
 

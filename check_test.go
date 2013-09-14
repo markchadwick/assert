@@ -148,6 +148,22 @@ func TestTestEquals(t *testing.T) {
 }
 
 // ----------------------------------------------------------------------------
+// Not-equals Check
+
+func TestNotEquals(t *testing.T) {
+	err := (&NotEquals{"bon"}).Check("jour")
+	That(t, err).IsNil()
+
+	That(t, 123).NotEquals(false)
+
+	err = (&NotEquals{123}).Check(123)
+	exp := "expected not int: 123\n" +
+		"received int:     123"
+
+	That(t, err.Error()).Equals(exp)
+}
+
+// ----------------------------------------------------------------------------
 // Boolean checks
 
 func TestIsTrue(t *testing.T) {

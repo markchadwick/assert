@@ -27,6 +27,7 @@ Currently a bit in flux, but a quick overview,
 * IsNil()
 * NotNil()
 * Equals(v interface{})
+* NotEquals(v interface{})
 * IsTrue()
 * IsFalse()
 * HasLen(length int)
