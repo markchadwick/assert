@@ -6,6 +6,17 @@ import (
 )
 
 // ----------------------------------------------------------------------------
+// TODO
+
+func TestStartsWith(t *testing.T) {
+	t.Skip("StartsWith")
+}
+
+func TestEndsWith(t *testing.T) {
+	t.Skip("EndsWith")
+}
+
+// ----------------------------------------------------------------------------
 // Nil Check
 
 func TestSimpleNil(t *testing.T) {
@@ -35,10 +46,11 @@ func TestTestNil(t *testing.T) {
 
 func TestNilMessage(t *testing.T) {
 	msg := Assert(3).IsNil().Check().Error()
-	expected := "expected:     <nil>\n" +
+	expected := "" +
+		"    expected: <nil>\n" +
 		"received int: 3"
 	if msg != expected {
-		t.Fatalf("Didn't like the error message: %s", msg)
+		t.Fatalf("Didn't like the error message: '%s'", msg)
 	}
 }
 
@@ -50,8 +62,9 @@ func TestNotNil(t *testing.T) {
 	That(t, err).IsNil()
 
 	msg := new(NotNil).Check(nil).Error()
-	exp := "expected not: <nil>\n" +
-		"received:     <nil>"
+	exp := "" +
+		"expected not: <nil>\n" +
+		"    received: <nil>"
 	if msg != exp {
 		t.Fatalf("Expected: '%s', got '%s'", exp, msg)
 	}
@@ -157,8 +170,9 @@ func TestNotEquals(t *testing.T) {
 	That(t, 123).NotEquals(false)
 
 	err = (&NotEquals{123}).Check(123)
-	exp := "expected not int: 123\n" +
-		"received int:     123"
+	exp := "" +
+		"expected not int: 123\n" +
+		"    received int: 123"
 
 	That(t, err.Error()).Equals(exp)
 }

@@ -2,49 +2,74 @@ package assert
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
+	"reflect"
 )
 
-func errNotEqual(exp, act interface{}) error {
-	expPre := preamble("expected", exp)
-	actPre := preamble("received", act)
+type Error struct {
+	preambles []string
+	values    []interface{}
+}
 
-	length := len(expPre)
-	if len(actPre) > length {
-		length = len(actPre)
+func NewError() *Error {
+	return &Error{
+		preambles: make([]string, 0),
+		values:    make([]interface{}, 0),
 	}
-	lenFmt := fmt.Sprintf("%%-%ds", length)
+}
 
-	b := new(bytes.Buffer)
-	fmt.Fprintf(b, lenFmt, expPre)
-	fmt.Fprintf(b, "%v\n", exp)
-	fmt.Fprintf(b, lenFmt, actPre)
-	fmt.Fprintf(b, "%v", act)
-	return errors.New(b.String())
+func (e *Error) Add(preamble string, value interface{}) *Error {
+	if value != nil {
+		preamble = fmt.Sprintf("%s %T: ", preamble, value)
+	} else {
+		preamble = fmt.Sprintf("%s: ", preamble)
+	}
+
+	e.preambles = append(e.preambles, preamble)
+	e.values = append(e.values, value)
+
+	return e
+}
+
+func (e *Error) Error() string {
+	longest := 0
+	for _, pre := range e.preambles {
+		if len(pre) > longest {
+			longest = len(pre)
+		}
+	}
+	buf := new(bytes.Buffer)
+	lenFmt := fmt.Sprintf("%%%ds", longest)
+	num := len(e.preambles)
+
+	for i, pre := range e.preambles {
+		fmt.Fprintf(buf, lenFmt, pre)
+		fmt.Fprintf(buf, e.valueStr(e.values[i]))
+		if i < num-1 {
+			fmt.Fprint(buf, "\n")
+		}
+	}
+	return buf.String()
+}
+
+func (e *Error) valueStr(i interface{}) string {
+	switch t := i.(type) {
+	case string:
+		return fmt.Sprintf(`"%s"`, t)
+	case reflect.Value:
+		return e.valueStr(t.Interface())
+	}
+	return fmt.Sprintf("%v", i)
+}
+
+func errNotEqual(exp, act interface{}) error {
+	return NewError().
+		Add("expected", exp).
+		Add("received", act)
 }
 
 func errEqual(exp, act interface{}) error {
-	expPre := preamble("expected not", exp)
-	actPre := preamble("received", act)
-
-	length := len(expPre)
-	if len(actPre) > length {
-		length = len(actPre)
-	}
-	lenFmt := fmt.Sprintf("%%-%ds", length)
-
-	b := new(bytes.Buffer)
-	fmt.Fprintf(b, lenFmt, expPre)
-	fmt.Fprintf(b, "%v\n", exp)
-	fmt.Fprintf(b, lenFmt, actPre)
-	fmt.Fprintf(b, "%v", act)
-	return errors.New(b.String())
-}
-
-func preamble(msg string, v interface{}) string {
-	if v == nil {
-		return fmt.Sprintf("%s: ", msg)
-	}
-	return fmt.Sprintf("%s %T: ", msg, v)
+	return NewError().
+		Add("expected not", exp).
+		Add("received", act)
 }
